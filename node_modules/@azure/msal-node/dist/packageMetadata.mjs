@@ -1,0 +1,8 @@
+/*! @azure/msal-node v5.2.0 2026-05-07 */
+'use strict';
+/* eslint-disable header/header */
+const name = "@azure/msal-node";
+const version = "5.2.0";
+
+export { name, version };
+//# sourceMappingURL=packageMetadata.mjs.map
