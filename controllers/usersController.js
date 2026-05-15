@@ -1,4 +1,7 @@
 const { sql } = require('../config/db');
+const bcrypt = require('bcryptjs');
+
+
 
 const getAll = async (req, res) => {
     try {
@@ -22,48 +25,71 @@ const getById = async (req, res) => {
     }
 };
 
-const create = async (req, res) => {
+const createUser = async (req, res) => {
+
     try {
-        const {
-            Username,
-            PasswordHash,
-            RoleID
-        } = req.body;
+
+        const { Username, Password, RoleID } = req.body;
+
+        // تشفير كلمة المرور
+        const hashedPassword = await bcrypt.hash(
+            Password,
+            10
+        );
 
         await sql.query`
             INSERT INTO Users
             (Username, PasswordHash, RoleID)
             VALUES
-            (${Username}, ${PasswordHash}, ${RoleID})
+            (
+                ${Username},
+                ${hashedPassword},
+                ${RoleID}
+            )
         `;
 
-        res.send('User created');
-    } catch (err) {
-        res.status(500).send(err.message);
+        res.status(201).json({
+            message: 'User created successfully'
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
     }
 };
 
 const update = async (req, res) => {
+
     try {
+
         const {
             Username,
-            PasswordHash,
+            Password,
             RoleID,
             IsActive
         } = req.body;
+
+        const hashedPassword = await bcrypt.hash(
+            Password,
+            10
+        );
 
         await sql.query`
             UPDATE Users
             SET
                 Username = ${Username},
-                PasswordHash = ${PasswordHash},
+                PasswordHash = ${hashedPassword},
                 RoleID = ${RoleID},
                 IsActive = ${IsActive}
             WHERE UserID = ${req.params.id}
         `;
 
         res.send('User updated');
+
     } catch (err) {
+
         res.status(500).send(err.message);
     }
 };
@@ -115,7 +141,7 @@ const remove = async (req, res) => {
 module.exports = {
     getAll,
     getById,
-    create,
+    createUser,
     update,
     remove
 };
