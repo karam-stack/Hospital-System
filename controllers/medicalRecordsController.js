@@ -1,87 +1,88 @@
 const { sql } = require('../config/db');
 
-// GET ALL
+
+
 const getAll = async (req, res) => {
     try {
         const result = await sql.query(`
             SELECT * FROM MedicalRecords
+            ORDER BY RecordID DESC
         `);
-
-        res.json(result.recordset);
-
+        res.status(200).json(result.recordset);
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Get All Medical Records Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-// GET BY ID
+
+
+
 const getById = async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid Record ID' });
+        }
 
         const result = await sql.query`
             SELECT * FROM MedicalRecords
             WHERE RecordID = ${id}
         `;
 
-        res.json(result.recordset[0]);
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Medical record not found' });
+        }
 
+        res.status(200).json(result.recordset[0]);
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Get Medical Record By ID Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-// CREATE
+
 const create = async (req, res) => {
     try {
-        const {
-            PatientID,
-            DoctorID,
-            Diagnosis,
-            TreatmentPlan,
-            XRayImagePath
-        } = req.body;
+        const { PatientID, DoctorID, Diagnosis, TreatmentPlan, XRayImagePath } = req.body;
 
-        await sql.query`
-            INSERT INTO MedicalRecords
-            (
-                PatientID,
-                DoctorID,
-                Diagnosis,
-                TreatmentPlan,
-                XRayImagePath
-            )
-            VALUES
-            (
-                ${PatientID},
-                ${DoctorID},
-                ${Diagnosis},
-                ${TreatmentPlan},
-                ${XRayImagePath}
-            )
+        if (!PatientID || !DoctorID || !Diagnosis || !TreatmentPlan) {
+            return res.status(400).json({ message: 'Required fields are missing' });
+        }
+
+        const result = await sql.query`
+            INSERT INTO MedicalRecords (PatientID, DoctorID, Diagnosis, TreatmentPlan, XRayImagePath)
+            OUTPUT INSERTED.*
+            VALUES (${PatientID}, ${DoctorID}, ${Diagnosis}, ${TreatmentPlan}, ${XRayImagePath})
         `;
 
-        res.send('Medical record created successfully');
-
+        res.status(201).json({
+            message: 'Medical record created successfully',
+            data: result.recordset[0]
+        });
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Create Medical Record Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-// UPDATE
+
+
 const update = async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid Record ID' });
+        }
 
-        const {
-            PatientID,
-            DoctorID,
-            Diagnosis,
-            TreatmentPlan,
-            XRayImagePath
-        } = req.body;
+        const { PatientID, DoctorID, Diagnosis, TreatmentPlan, XRayImagePath } = req.body;
 
-        await sql.query`
+        if (!PatientID || !DoctorID || !Diagnosis || !TreatmentPlan) {
+            return res.status(400).json({ message: 'Required fields are missing' });
+        }
+
+   
+        const result = await sql.query`
             UPDATE MedicalRecords
             SET
                 PatientID = ${PatientID},
@@ -90,37 +91,46 @@ const update = async (req, res) => {
                 TreatmentPlan = ${TreatmentPlan},
                 XRayImagePath = ${XRayImagePath},
                 UpdatedAt = GETDATE()
+            OUTPUT INSERTED.*
             WHERE RecordID = ${id}
         `;
 
-        res.send('Medical record updated successfully');
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Medical record not found' });
+        }
 
+        res.status(200).json({
+            message: 'Medical record updated successfully',
+            data: result.recordset[0]
+        });
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Update Medical Record Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-// DELETE
+
 const remove = async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid Record ID' });
+        }
 
-        await sql.query`
-            DELETE FROM MedicalRecords
-            WHERE RecordID = ${id}
+        const result = await sql.query`
+            DELETE FROM MedicalRecords WHERE RecordID = ${id};
+            SELECT @@ROWCOUNT AS RowsAffected;
         `;
 
-        res.send('Medical record deleted successfully');
+        if (result.recordset[0].RowsAffected === 0) {
+            return res.status(404).json({ message: 'Medical record not found' });
+        }
 
+        res.status(200).json({ message: 'Medical record deleted successfully' });
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Delete Medical Record Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-module.exports = {
-    getAll,
-    getById,
-    create,
-    update,
-    remove
-};
+module.exports = { getAll, getById, create, update, remove };

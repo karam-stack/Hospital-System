@@ -1,17 +1,22 @@
 const express = require('express');
-
 const router = express.Router();
 
 const controller = require('../controllers/prescriptionsController');
+const authenticate = require('../middleware/authMiddleware');
+const authorizeRoles = require('../middleware/authorizeRoles');
+const ROLES = require('../config/roles');
 
-router.get('/', controller.getAll);
+router.use(authenticate);
 
-router.get('/:id', controller.getById);
+// READ (Admin + Doctor)
+router.get('/', authorizeRoles(ROLES.ADMIN, ROLES.DOCTOR), controller.getAll);
+router.get('/:id', authorizeRoles(ROLES.ADMIN, ROLES.DOCTOR), controller.getById);
 
-router.post('/', controller.create);
+// WRITE (Admin + Doctor)
+router.post('/', authorizeRoles(ROLES.ADMIN, ROLES.DOCTOR), controller.create);
+router.put('/:id', authorizeRoles(ROLES.ADMIN, ROLES.DOCTOR), controller.update);
 
-router.put('/:id', controller.update);
-
-router.delete('/:id', controller.remove);
+// DELETE (Admin only)
+router.delete('/:id', authorizeRoles(ROLES.ADMIN), controller.remove);
 
 module.exports = router;

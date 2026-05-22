@@ -1,49 +1,212 @@
 const { sql } = require('../config/db');
+const doctorSchema = require('../validations/doctorValidation');
+
+
+
 
 const getAll = async (req, res) => {
-    const result = await sql.query('SELECT * FROM Doctors');
-    res.json(result.recordset);
+    try {
+        const result = await sql.query(`
+            SELECT * FROM Doctors
+            ORDER BY DoctorID DESC
+        `);
+
+        res.status(200).json(result.recordset);
+
+    } catch (err) {
+        console.error('Get All Doctors Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
+    }
 };
+
 
 const getById = async (req, res) => {
-    const result = await sql.query`
-        SELECT * FROM Doctors WHERE DoctorID = ${req.params.id}
-    `;
+    try {
+        const id = parseInt(req.params.id);
 
-    res.json(result.recordset[0]);
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: 'Invalid Doctor ID'
+            });
+        }
+
+        const result = await sql.query`
+            SELECT * FROM Doctors
+            WHERE DoctorID = ${id}
+        `;
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({
+                message: 'Doctor not found'
+            });
+        }
+
+        res.status(200).json(result.recordset[0]);
+
+    } catch (err) {
+        console.error('Get Doctor By ID Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
+    }
 };
+
+
+
 
 const create = async (req, res) => {
-    const { UserID, Specialization, ClinicNumber } = req.body;
+    try {
+       
+        const { error } = doctorSchema.validate(req.body);
 
-    await sql.query`
-        INSERT INTO Doctors(UserID, Specialization, ClinicNumber)
-        VALUES(${UserID}, ${Specialization}, ${ClinicNumber})
-    `;
+        if (error) {
+            return res.status(400).json({
+                message: error.details[0].message
+            });
+        }
 
-    res.send('Doctor created');
+        const {
+            UserID,
+            Specialization,
+            ClinicNumber
+        } = req.body;
+
+
+        const exists = await sql.query`
+            SELECT * FROM Doctors
+            WHERE UserID = ${UserID}
+        `;
+
+        if (exists.recordset.length > 0) {
+            return res.status(409).json({
+                message: 'Doctor already exists for this user'
+            });
+        }
+
+        const result = await sql.query`
+            INSERT INTO Doctors
+            (
+                UserID,
+                Specialization,
+                ClinicNumber
+            )
+            OUTPUT INSERTED.*
+            VALUES
+            (
+                ${UserID},
+                ${Specialization},
+                ${ClinicNumber}
+            )
+        `;
+
+        res.status(201).json({
+            message: 'Doctor created successfully',
+            data: result.recordset[0]
+        });
+
+    } catch (err) {
+        console.error('Create Doctor Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
+    }
 };
+
+
+
+
 
 const update = async (req, res) => {
-    const { Specialization, ClinicNumber } = req.body;
+    try {
+        const id = parseInt(req.params.id);
 
-    await sql.query`
-        UPDATE Doctors
-        SET Specialization = ${Specialization},
-            ClinicNumber = ${ClinicNumber}
-        WHERE DoctorID = ${req.params.id}
-    `;
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: 'Invalid Doctor ID'
+            });
+        }
 
-    res.send('Doctor updated');
+        const {
+            Specialization,
+            ClinicNumber
+        } = req.body;
+
+        if (!Specialization || !ClinicNumber) {
+            return res.status(400).json({
+                message: 'Specialization and ClinicNumber are required'
+            });
+        }
+
+       
+        const result = await sql.query`
+            UPDATE Doctors
+            SET
+                Specialization = ${Specialization},
+                ClinicNumber = ${ClinicNumber}
+            OUTPUT INSERTED.*
+            WHERE DoctorID = ${id}
+        `;
+
+     
+        if (result.recordset.length === 0) {
+            return res.status(404).json({
+                message: 'Doctor not found'
+            });
+        }
+
+        res.status(200).json({
+            message: 'Doctor updated successfully',
+            data: result.recordset[0] // الآن المتغير يحتوي على البيانات الجديدة بشكل آمن
+        });
+
+    } catch (err) {
+        console.error('Update Doctor Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
+    }
 };
+
+
+
+
 
 const remove = async (req, res) => {
-    await sql.query`
-        DELETE FROM Doctors WHERE DoctorID = ${req.params.id}
-    `;
+    try {
+        const id = parseInt(req.params.id);
 
-    res.send('Doctor deleted');
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: 'Invalid Doctor ID'
+            });
+        }
+
+       
+        const result = await sql.query`
+            DELETE FROM Doctors WHERE DoctorID = ${id};
+            SELECT @@ROWCOUNT AS RowsAffected;
+        `;
+
+        if (result.recordset[0].RowsAffected === 0) {
+            return res.status(404).json({
+                message: 'Doctor not found'
+            });
+        }
+
+        res.status(200).json({
+            message: 'Doctor deleted successfully'
+        });
+
+    } catch (err) {
+        console.error('Delete Doctor Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
+    }
 };
+
 
 module.exports = {
     getAll,

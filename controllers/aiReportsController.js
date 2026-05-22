@@ -1,108 +1,126 @@
 const { sql } = require('../config/db');
 
-// GET ALL
+
 const getAll = async (req, res) => {
     try {
         const result = await sql.query(`
             SELECT * FROM AIReports
+            ORDER BY ReportID DESC
         `);
-
-        res.json(result.recordset);
-
+        res.status(200).json(result.recordset);
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Get All AI Reports Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-// GET BY ID
+
 const getById = async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid Report ID' });
+        }
 
         const result = await sql.query`
             SELECT * FROM AIReports
             WHERE ReportID = ${id}
         `;
 
-        res.json(result.recordset[0]);
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'AI Report not found' });
+        }
 
+        res.status(200).json(result.recordset[0]);
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Get AI Report By ID Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-// CREATE
+
 const create = async (req, res) => {
     try {
-        const {
-            RecordID,
-            ReportText
-        } = req.body;
+        const { RecordID, ReportText } = req.body;
 
-        await sql.query`
-            INSERT INTO AIReports
-            (
-                RecordID,
-                ReportText
-            )
-            VALUES
-            (
-                ${RecordID},
-                ${ReportText}
-            )
+        if (!RecordID || !ReportText) {
+            return res.status(400).json({ message: 'RecordID and ReportText are required' });
+        }
+
+        const result = await sql.query`
+            INSERT INTO AIReports (RecordID, ReportText)
+            OUTPUT INSERTED.*
+            VALUES (${RecordID}, ${ReportText})
         `;
 
-        res.send('AI report created successfully');
-
+        res.status(201).json({
+            message: 'AI report created successfully',
+            data: result.recordset[0]
+        });
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Create AI Report Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-// UPDATE
+
 const update = async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
+        const { ReportText } = req.body;
 
-        const {
-            ReportText
-        } = req.body;
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid Report ID' });
+        }
+        if (!ReportText) {
+            return res.status(400).json({ message: 'ReportText is required' });
+        }
 
-        await sql.query`
+    
+        const result = await sql.query`
             UPDATE AIReports
-            SET
-                ReportText = ${ReportText}
+            SET ReportText = ${ReportText}
+            OUTPUT INSERTED.*
             WHERE ReportID = ${id}
         `;
 
-        res.send('AI report updated successfully');
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'AI Report not found' });
+        }
 
+        res.status(200).json({
+            message: 'AI report updated successfully',
+            data: result.recordset[0]
+        });
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Update AI Report Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-// DELETE
+
 const remove = async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid Report ID' });
+        }
 
-        await sql.query`
-            DELETE FROM AIReports
-            WHERE ReportID = ${id}
+        // تحسين: الحذف بخطوة واحدة
+        const result = await sql.query`
+            DELETE FROM AIReports WHERE ReportID = ${id};
+            SELECT @@ROWCOUNT AS RowsAffected;
         `;
 
-        res.send('AI report deleted successfully');
+        if (result.recordset[0].RowsAffected === 0) {
+            return res.status(404).json({ message: 'AI Report not found' });
+        }
 
+        res.status(200).json({ message: 'AI report deleted successfully' });
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Delete AI Report Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-module.exports = {
-    getAll,
-    getById,
-    create,
-    update,
-    remove
-};
+module.exports = { getAll, getById, create, update, remove };

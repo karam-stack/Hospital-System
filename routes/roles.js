@@ -1,22 +1,17 @@
 const express = require('express');
-
 const router = express.Router();
 
 const controller = require('../controllers/rolesController');
+const authenticate = require('../middleware/authMiddleware');
+const authorizeRoles = require('../middleware/authorizeRoles');
+const ROLES = require('../config/roles');
 
-// GET ALL
+router.use(authenticate, authorizeRoles(ROLES.ADMIN));
+
 router.get('/', controller.getAll);
-
-// GET BY ID
 router.get('/:id', controller.getById);
-
-// CREATE
 router.post('/', controller.create);
-
-// UPDATE
 router.put('/:id', controller.update);
-
-// DELETE
 router.delete('/:id', controller.remove);
 
 module.exports = router;

@@ -1,73 +1,185 @@
 const { sql } = require('../config/db');
 
+
+// ==========================
+// GET ALL PATIENTS
+// ==========================
 const getAll = async (req, res) => {
     try {
-        const result = await sql.query('SELECT * FROM Patients');
-        res.json(result.recordset);
+        const result = await sql.query(`
+            SELECT * FROM Patients
+            ORDER BY PatientID DESC
+        `);
+
+        res.status(200).json(result.recordset);
+
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Get All Patients Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
     }
 };
 
+
+// ==========================
+// GET PATIENT BY ID
+// ==========================
 const getById = async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: 'Invalid Patient ID'
+            });
+        }
 
         const result = await sql.query`
-            SELECT * FROM Patients WHERE PatientID = ${id}
+            SELECT * FROM Patients
+            WHERE PatientID = ${id}
         `;
 
-        res.json(result.recordset[0]);
+        if (result.recordset.length === 0) {
+            return res.status(404).json({
+                message: 'Patient not found'
+            });
+        }
+
+        res.status(200).json(result.recordset[0]);
+
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Get Patient By ID Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
     }
 };
+
+
 
 const create = async (req, res) => {
     try {
         const { UserID, BloodType } = req.body;
 
-        await sql.query`
-            INSERT INTO Patients(UserID, BloodType)
-            VALUES(${UserID}, ${BloodType})
+        // Validation
+        if (!UserID || !BloodType) {
+            return res.status(400).json({
+                message: 'UserID and BloodType are required'
+            });
+        }
+
+        const result = await sql.query`
+            INSERT INTO Patients
+            (
+                UserID,
+                BloodType
+            )
+            OUTPUT INSERTED.*
+            VALUES
+            (
+                ${UserID},
+                ${BloodType}
+            )
         `;
 
-        res.send('Patient created');
+        res.status(201).json({
+            message: 'Patient created successfully',
+            data: result.recordset[0]
+        });
+
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Create Patient Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
     }
 };
+
+
 
 const update = async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: 'Invalid Patient ID'
+            });
+        }
+
         const { BloodType } = req.body;
 
-        await sql.query`
+        if (!BloodType) {
+            return res.status(400).json({
+                message: 'BloodType is required'
+            });
+        }
+
+      
+        const result = await sql.query`
             UPDATE Patients
             SET BloodType = ${BloodType}
+            OUTPUT INSERTED.*
             WHERE PatientID = ${id}
         `;
 
-        res.send('Patient updated');
+    
+        if (result.recordset.length === 0) {
+            return res.status(404).json({
+                message: 'Patient not found'
+            });
+        }
+
+        res.status(200).json({
+            message: 'Patient updated successfully',
+            data: result.recordset[0]
+        });
+
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Update Patient Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
     }
 };
+
+
 
 const remove = async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
 
-        await sql.query`
-            DELETE FROM Patients WHERE PatientID = ${id}
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: 'Invalid Patient ID'
+            });
+        }
+
+      
+        const result = await sql.query`
+            DELETE FROM Patients WHERE PatientID = ${id};
+            SELECT @@ROWCOUNT AS RowsAffected;
         `;
 
-        res.send('Patient deleted');
+        if (result.recordset[0].RowsAffected === 0) {
+            return res.status(404).json({
+                message: 'Patient not found'
+            });
+        }
+
+        res.status(200).json({
+            message: 'Patient deleted successfully'
+        });
+
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Delete Patient Error:', err);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
     }
 };
+
 
 module.exports = {
     getAll,
