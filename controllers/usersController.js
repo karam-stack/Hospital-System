@@ -48,10 +48,6 @@ const getById = async (req, res) => {
 
 const createUser = async (req, res) => {
     try {
-        const { error } = userSchema.validate(req.body);
-        if (error) {
-            return res.status(400).json({ message: error.details[0].message });
-        }
 
         const { Username, Password, RoleID } = req.body;
 
@@ -76,12 +72,11 @@ const createUser = async (req, res) => {
             message: 'User created successfully',
             data: result.recordset[0]
         });
+
     } catch (err) {
-        console.error('Create User Error:', err);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-
 
 
 const update = async (req, res) => {

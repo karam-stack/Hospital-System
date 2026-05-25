@@ -52,9 +52,7 @@ const getById = async (req, res) => {
 const create = async (req, res) => {
     try {
         const { RoleName } = req.body;
-        if (!RoleName) {
-            return res.status(400).json({ message: 'RoleName is required' });
-        }
+       
 
         const exists = await sql.query`
             SELECT * FROM Roles

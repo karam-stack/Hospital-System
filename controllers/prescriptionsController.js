@@ -48,11 +48,7 @@ const create = async (req, res) => {
     try {
         const { RecordID, Medication, Dosage, Notes } = req.body;
 
-        if (!RecordID || !Medication || !Dosage) {
-            return res.status(400).json({
-                message: 'RecordID, Medication and Dosage are required'
-            });
-        }
+       
 
         const result = await sql.query`
             INSERT INTO Prescriptions (RecordID, Medication, Dosage, Notes)

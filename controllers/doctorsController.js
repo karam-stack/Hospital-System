@@ -59,14 +59,9 @@ const getById = async (req, res) => {
 const create = async (req, res) => {
     try {
        
-        const { error } = doctorSchema.validate(req.body);
+    
 
-        if (error) {
-            return res.status(400).json({
-                message: error.details[0].message
-            });
-        }
-
+        
         const {
             UserID,
             Specialization,

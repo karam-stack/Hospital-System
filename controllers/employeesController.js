@@ -45,9 +45,7 @@ const create = async (req, res) => {
     try {
         const { UserID, Position, HireDate } = req.body;
 
-        if (!UserID || !Position || !HireDate) {
-            return res.status(400).json({ message: 'UserID, Position and HireDate are required' });
-        }
+        
 
         const result = await sql.query`
             INSERT INTO Employees (UserID, Position, HireDate)

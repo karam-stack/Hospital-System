@@ -6,12 +6,21 @@ const authenticate = require('../middleware/authMiddleware');
 const authorizeRoles = require('../middleware/authorizeRoles');
 const allowOwnerOrAdmin = require('../middleware/allowOwnerMiddleware');
 const ROLES = require('../config/roles');
+const validate = require('../middleware/validate');
+const userSchema = require('../validations/userValidation');
+
+
 
 router.use(authenticate);
 
 // ADMIN ONLY
 router.get('/', authorizeRoles(ROLES.ADMIN), controller.getAll);
-router.post('/', authorizeRoles(ROLES.ADMIN), controller.createUser);
+router.post(
+    '/',
+    authorizeRoles(ROLES.ADMIN),
+    validate(userSchema),
+    controller.createUser
+);
 router.delete('/:id', authorizeRoles(ROLES.ADMIN), controller.remove);
 
 // OWNER OR ADMIN

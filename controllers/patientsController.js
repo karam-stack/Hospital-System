@@ -62,12 +62,7 @@ const create = async (req, res) => {
     try {
         const { UserID, BloodType } = req.body;
 
-        // Validation
-        if (!UserID || !BloodType) {
-            return res.status(400).json({
-                message: 'UserID and BloodType are required'
-            });
-        }
+       
 
         const result = await sql.query`
             INSERT INTO Patients

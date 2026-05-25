@@ -6,20 +6,42 @@ const authenticate = require('../middleware/authMiddleware');
 const authorizeRoles = require('../middleware/authorizeRoles');
 const allowOwnerOrAdmin = require('../middleware/allowOwnerMiddleware');
 const ROLES = require('../config/roles');
+const validate = require('../middleware/validate');
+const personalInfoSchema = require('../validations/personalInfoValidation');
 
 router.use(authenticate);
 
-// ADMIN + STAFF
-router.get('/', authorizeRoles(ROLES.ADMIN, ROLES.DOCTOR, ROLES.EMPLOYEE), controller.getAll);
+router.get(
+    '/',
+    authorizeRoles(ROLES.ADMIN, ROLES.DOCTOR, ROLES.EMPLOYEE),
+    controller.getAll
+);
 
-// Admin + Employee create
-router.post('/', authorizeRoles(ROLES.ADMIN, ROLES.EMPLOYEE), controller.create);
+router.post(
+    '/',
+    authorizeRoles(ROLES.ADMIN, ROLES.EMPLOYEE),
+    validate(personalInfoSchema),
+    controller.create
+);
 
-// Owner or Admin access
-router.get('/:id', allowOwnerOrAdmin(), controller.getById);
-router.put('/:id', allowOwnerOrAdmin(), controller.update);
+router.get(
+    '/:id',
+    authorizeRoles(ROLES.ADMIN, ROLES.DOCTOR, ROLES.EMPLOYEE),
+    allowOwnerOrAdmin((req) => req.params.id),
+    controller.getById
+);
 
-// Admin only
-router.delete('/:id', authorizeRoles(ROLES.ADMIN), controller.remove);
+router.put(
+    '/:id',
+    authorizeRoles(ROLES.ADMIN, ROLES.EMPLOYEE),
+    allowOwnerOrAdmin((req) => req.params.id),
+    validate(personalInfoSchema),
+    controller.update
+);
 
+router.delete(
+    '/:id',
+    authorizeRoles(ROLES.ADMIN),
+    controller.remove
+);
 module.exports = router;

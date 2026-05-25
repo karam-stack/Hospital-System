@@ -1,21 +1,31 @@
 const Joi = require('joi');
 
-const doctorSchema = Joi.object({
+const createDoctorSchema = Joi.object({
     UserID: Joi.number()
         .integer()
-        .positive() 
+        .positive()
         .required(),
 
     Specialization: Joi.string()
-        .min(3)
         .max(100)
-        .trim() 
         .required(),
 
-    ClinicNumber: Joi.number()
-        .integer()
-        .positive()
+    ClinicNumber: Joi.string()
+        .max(20)
         .required()
 });
 
-module.exports = doctorSchema;
+const updateDoctorSchema = Joi.object({
+    Specialization: Joi.string()
+        .max(100)
+        .required(),
+
+    ClinicNumber: Joi.string()
+        .max(20)
+        .required()
+});
+
+module.exports = {
+    createDoctorSchema,
+    updateDoctorSchema
+};

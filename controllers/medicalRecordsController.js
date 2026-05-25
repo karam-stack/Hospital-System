@@ -46,9 +46,7 @@ const create = async (req, res) => {
     try {
         const { PatientID, DoctorID, Diagnosis, TreatmentPlan, XRayImagePath } = req.body;
 
-        if (!PatientID || !DoctorID || !Diagnosis || !TreatmentPlan) {
-            return res.status(400).json({ message: 'Required fields are missing' });
-        }
+        
 
         const result = await sql.query`
             INSERT INTO MedicalRecords (PatientID, DoctorID, Diagnosis, TreatmentPlan, XRayImagePath)

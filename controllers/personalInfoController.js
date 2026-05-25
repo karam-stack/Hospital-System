@@ -80,18 +80,7 @@ const create = async (req, res) => {
         } = req.body;
 
     
-        if (
-            !UserID ||
-            !FullName ||
-            !Email ||
-            !DateOfBirth ||
-            !Gender
-        ) {
-            return res.status(400).json({
-                message: 'Required fields are missing'
-            });
-        }
-
+        
         const result = await sql.query`
             INSERT INTO PersonalInfo
             (

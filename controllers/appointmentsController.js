@@ -45,9 +45,7 @@ const create = async (req, res) => {
     try {
         const { PatientID, DoctorID, AppointmentDate, Status } = req.body;
 
-        if (!PatientID || !DoctorID || !AppointmentDate || !Status) {
-            return res.status(400).json({ message: 'All fields are required' });
-        }
+      
 
         const result = await sql.query`
             INSERT INTO Appointments (PatientID, DoctorID, AppointmentDate, Status)

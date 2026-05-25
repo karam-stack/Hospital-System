@@ -1,26 +1,15 @@
 const Joi = require('joi');
 
-const userSchema = Joi.object({
+const createUserSchema = Joi.object({
     Username: Joi.string()
         .min(3)
         .max(50)
-        .alphanum() 
-        .required()
-        .messages({
-            'string.min': 'يجب أن يكون اسم المستخدم 3 حروف على الأقل',
-            'any.required': 'اسم المستخدم حقل مطلوب'
-        }),
+        .alphanum()
+        .required(),
 
     Password: Joi.string()
-        .min(8) 
-        .max(100)
-      
-        .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$'))
-        .required()
-        .messages({
-            'string.pattern.base': 'كلمة المرور ضعيفة! يجب أن تحتوي على حرف كبير، حرف صغير، رقم، ورمز خاص واحد على الأقل.',
-            'string.min': 'يجب أن تكون كلمة المرور 8 خانات على الأقل'
-        }),
+        .min(8)
+        .required(),
 
     RoleID: Joi.number()
         .integer()
@@ -28,4 +17,27 @@ const userSchema = Joi.object({
         .required()
 });
 
-module.exports = userSchema;
+const updateUserSchema = Joi.object({
+    Username: Joi.string()
+        .min(3)
+        .max(50)
+        .alphanum()
+        .required(),
+
+    Password: Joi.string()
+        .min(8)
+        .optional(),
+
+    RoleID: Joi.number()
+        .integer()
+        .positive()
+        .required(),
+
+    IsActive: Joi.boolean()
+        .required()
+});
+
+module.exports = {
+    createUserSchema,
+    updateUserSchema
+};

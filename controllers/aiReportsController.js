@@ -43,9 +43,7 @@ const create = async (req, res) => {
     try {
         const { RecordID, ReportText } = req.body;
 
-        if (!RecordID || !ReportText) {
-            return res.status(400).json({ message: 'RecordID and ReportText are required' });
-        }
+       
 
         const result = await sql.query`
             INSERT INTO AIReports (RecordID, ReportText)
