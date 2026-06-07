@@ -17,13 +17,12 @@ const createDoctorSchema = Joi.object({
 
 const updateDoctorSchema = Joi.object({
     Specialization: Joi.string()
-        .max(100)
-        .required(),
+        .max(100),
 
     ClinicNumber: Joi.string()
         .max(20)
-        .required()
-});
+
+}).min(1);
 
 module.exports = {
     createDoctorSchema,

@@ -1,5 +1,4 @@
 const sql = require('mssql');
-require('dotenv').config();
 
 const config = {
     user: process.env.DB_USER,
@@ -12,13 +11,21 @@ const config = {
     }
 };
 
+let pool;
+
 const connectDB = async () => {
-    try {
-        await sql.connect(config);
-        console.log("Connected to SQL Server");
-    } catch (err) {
-        console.log("DB Connection Error:", err);
-    }
+    pool = await sql.connect(config);
 };
 
-module.exports = { sql, connectDB };
+const getPool = () => {
+    if (!pool) {
+        throw new Error('Database not connected');
+    }
+    return pool;
+};
+
+module.exports = {
+    sql,
+    connectDB,
+    getPool
+};

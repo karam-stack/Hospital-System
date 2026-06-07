@@ -16,12 +16,11 @@ const createEmployeeSchema = Joi.object({
 
 const updateEmployeeSchema = Joi.object({
     Position: Joi.string()
-        .max(100)
-        .required(),
+        .max(100),
 
     HireDate: Joi.date()
-        .required()
-});
+
+}).min(1);
 
 module.exports = {
     createEmployeeSchema,
