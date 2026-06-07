@@ -27,24 +27,20 @@ const createPersonalInfoSchema = Joi.object({
 
 const updatePersonalInfoSchema = Joi.object({
     FullName: Joi.string()
-        .max(100)
-        .required(),
+        .max(100),
 
     Email: Joi.string()
-        .email()
-        .required(),
+        .email(),
 
     Address: Joi.string()
         .allow('', null),
 
-    DateOfBirth: Joi.date()
-        .required(),
+    DateOfBirth: Joi.date(),
 
     Gender: Joi.string()
         .valid('Male', 'Female')
-        .required()
-});
 
+}).min(1);
 module.exports = {
     createPersonalInfoSchema,
     updatePersonalInfoSchema

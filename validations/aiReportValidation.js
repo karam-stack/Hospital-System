@@ -12,8 +12,8 @@ const createAIReportSchema = Joi.object({
 
 const updateAIReportSchema = Joi.object({
     ReportText: Joi.string()
-        .required()
-});
+}).min(1);
+
 
 module.exports = {
     createAIReportSchema,

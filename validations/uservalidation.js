@@ -21,21 +21,18 @@ const updateUserSchema = Joi.object({
     Username: Joi.string()
         .min(3)
         .max(50)
-        .alphanum()
-        .required(),
+        .alphanum(),
 
     Password: Joi.string()
-        .min(8)
-        .optional(),
+        .min(8),
 
     RoleID: Joi.number()
         .integer()
-        .positive()
-        .required(),
+        .positive(),
 
     IsActive: Joi.boolean()
-        .required()
-});
+
+}).min(1);
 
 module.exports = {
     createUserSchema,

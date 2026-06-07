@@ -17,15 +17,11 @@ const createPrescriptionSchema = Joi.object({
 });
 
 const updatePrescriptionSchema = Joi.object({
-    Medication: Joi.string()
-        .required(),
-
-    Dosage: Joi.string()
-        .required(),
-
+    Medication: Joi.string(), // أصبحت اختيارية عند التعديل
+    Dosage: Joi.string(),     // أصبحت اختيارية عند التعديل
     Notes: Joi.string()
         .allow('', null)
-});
+}).min(1);
 
 module.exports = {
     createPrescriptionSchema,

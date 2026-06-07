@@ -7,33 +7,14 @@ const createPatientSchema = Joi.object({
         .required(),
 
     BloodType: Joi.string()
-        .valid(
-            'A+',
-            'A-',
-            'B+',
-            'B-',
-            'AB+',
-            'AB-',
-            'O+',
-            'O-'
-        )
+        .valid('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')
         .required()
 });
 
 const updatePatientSchema = Joi.object({
     BloodType: Joi.string()
-        .valid(
-            'A+',
-            'A-',
-            'B+',
-            'B-',
-            'AB+',
-            'AB-',
-            'O+',
-            'O-'
-        )
-        .required()
-});
+        .valid('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') // تم إزالة .required() المنطقية هنا
+}).min(1);
 
 module.exports = {
     createPatientSchema,
